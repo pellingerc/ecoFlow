@@ -66,13 +66,66 @@ def remove_first_col(input_file_path, output_file_path):
 
 #remove_first_col(population, "data/population_rank.csv")
 
-df = pd.read_csv("data/rainfall_names.csv")
+rainfall_pd = pd.read_csv("data/rainfall_names.csv")
+population_pd = pd.read_csv("data/population_rank.csv")
 
 # Group by the first and second columns and sum up the rest of the columns
-df_grouped = df.groupby(['subdivision', 'YEAR']).sum().reset_index().round(2)
+rainfall_grouped = rainfall_pd.groupby(['subdivision', 'YEAR']).sum().reset_index().round(2)
+
+# Rainfall post 1950
+rainfall_post_1951 = rainfall_grouped[rainfall_grouped['YEAR'] > 1950]
+
+# Rainfall pre 2012 and post 1950
+rainfall_years = rainfall_post_1951[rainfall_post_1951['YEAR'] < 2012]
+
+rainfall_years.to_csv("data/rainfall_years.csv", index=False)
+
+# Filter for same regions
+rainfall_regions = rainfall_years[rainfall_years['subdivision'].isin(population_pd['state or union territory'])]
+rainfall_regions.to_csv("data/rainfall_regions.csv", index=False)
+
+#rename pop columns to just year
+population_pd = population_pd.rename(columns={'Population 1951' : '1951', 'Population 1961' : '1961', 'Population 1971' : '1971', 'Population 1981' : '1981', 'Population 1991' : '1991', 'Population 2001' : '2001', 'Population 2011' : '2011'})
+
+population_pd.to_csv("data/population_years.csv", index=False)
+
+#add population data to rainfall matching decade
+populations = []
+for index, row in rainfall_regions.iterrows():
+    state = row['subdivision']
+    year = row['YEAR']
+    #pair year to 1951, 1961, 1971, 1981, 1991, 2001, 2011
+    if year < 1961:
+        year = 1
+    elif year < 1971:
+        year = 2
+    elif year < 1981:
+        year = 3
+    elif year < 1991:
+        year = 4
+    elif year < 2001:
+        year = 5
+    elif year < 2011:
+        year = 6
+    else:
+        year = 7
+    population_row = population_pd[population_pd['state or union territory'] == state]
+    population = population_row.iloc[0, year]
+    populations.append(population)
+
+rainfall_regions['Decade Population'] = populations
+
+rainfall_regions.to_csv("data/rainfall_population.csv", index=False)
 
 
-# Save the modified DataFrame back to a CSV file
-df_grouped.to_csv("combined_regions.csv", index=False)
+
+
+    
+
+    
+
+
+# # Now, merged_df contains the population data from the second dataframe added to the first dataframe
+# merged_df.to_csv("data/merged_data.csv", index=False)
 
 
