@@ -8,15 +8,7 @@ population = "data/population.csv"
 rainfall = "data/rainfall_in_india1901-2015.csv"
 
 def get_first_column(csv_file):
-    """
-    Function to extract the first column of a CSV file.
-    
-    Args:
-    csv_file (str): Path to the CSV file.
-    
-    Returns:
-    list: The values in the first column.
-    """
+    #Get first column
     first_column = []
     with open(csv_file, 'r') as file:
         csv_reader = csv.reader(file)
@@ -68,6 +60,7 @@ def remove_first_col(input_file_path, output_file_path):
 
 rainfall_pd = pd.read_csv("data/rainfall_names.csv")
 population_pd = pd.read_csv("data/population_rank.csv")
+floods_pd = pd.read_csv(floods)
 
 # Group by the first and second columns and sum up the rest of the columns
 rainfall_grouped = rainfall_pd.groupby(['subdivision', 'YEAR']).sum().reset_index().round(2)
@@ -119,6 +112,25 @@ rainfall_regions.to_csv("data/rainfall_population.csv", index=False)
 
 
 
+
+# Extract just the year component
+floods_pd['year'] = floods_pd['Start Date'].str.extract(r'(\d{4})')
+floods_pd.to_csv("data/floods_years.csv", index=False)
+
+#group by eliminate rows without states or regions
+floods_states = floods_pd.loc[(floods_pd['Location'].notna()) | (floods_pd['State'].notna())]
+floods_states.to_csv("data/floods_states.csv", index=False)
+
+floods_states['Location'] = floods_states['Location'].str.split(',')
+floods_states = floods_states.to_csv("data/floods_states_split.csv", index=False)
+
+
+
+# floods_grouped = floods_pd.groupby(['State', 'year']).size().reset_index(name='count')
+
+# floods_grouped.to_csv("data/floods_grouped.csv", index=False)
+
+# floods_grouped['State'] = floods_grouped['State'].str.lower()
 
     
 
