@@ -71,16 +71,16 @@ rainfall_post_1951 = rainfall_grouped[rainfall_grouped['YEAR'] > 1950]
 # Rainfall pre 2012 and post 1950
 rainfall_years = rainfall_post_1951[rainfall_post_1951['YEAR'] < 2012]
 
-rainfall_years.to_csv("data/rainfall_years.csv", index=False)
+# rainfall_years.to_csv("data/rainfall_years.csv", index=False)
 
 # Filter for same regions
 rainfall_regions = rainfall_years[rainfall_years['subdivision'].isin(population_pd['state or union territory'])]
-rainfall_regions.to_csv("data/rainfall_regions.csv", index=False)
+# rainfall_regions.to_csv("data/rainfall_regions.csv", index=False)
 
 #rename pop columns to just year
 population_pd = population_pd.rename(columns={'Population 1951' : '1951', 'Population 1961' : '1961', 'Population 1971' : '1971', 'Population 1981' : '1981', 'Population 1991' : '1991', 'Population 2001' : '2001', 'Population 2011' : '2011'})
 
-population_pd.to_csv("data/population_years.csv", index=False)
+# population_pd.to_csv("data/population_years.csv", index=False)
 
 #add population data to rainfall matching decade
 populations = []
@@ -108,21 +108,23 @@ for index, row in rainfall_regions.iterrows():
 
 rainfall_regions['Decade Population'] = populations
 
-rainfall_regions.to_csv("data/rainfall_population.csv", index=False)
+# rainfall_regions.to_csv("data/rainfall_population.csv", index=False)
 
 
 
 
 # Extract just the year component
 floods_pd['year'] = floods_pd['Start Date'].str.extract(r'(\d{4})')
-floods_pd.to_csv("data/floods_years.csv", index=False)
+# floods_pd.to_csv("data/floods_years.csv", index=False)
 
 #group by eliminate rows without states or regions
 floods_states = floods_pd.loc[(floods_pd['Location'].notna()) | (floods_pd['State'].notna())]
-floods_states.to_csv("data/floods_states.csv", index=False)
+#floods_states.to_csv("data/floods_states.csv", index=False)
 
-floods_states['Location'] = floods_states['Location'].str.split(',')
-floods_states = floods_states.to_csv("data/floods_states_split.csv", index=False)
+floods_states['Location'] = floods_states['Location'].str.lower()
+floods_states['State'] = floods_states['State'].str.lower()
+
+#floods_states = floods_states.to_csv("data/floods_states.csv", index=False)
 
 
 
@@ -133,6 +135,22 @@ floods_states = floods_states.to_csv("data/floods_states_split.csv", index=False
 # floods_grouped['State'] = floods_grouped['State'].str.lower()
 
     
+#loop through rows of rainfall and population
+floods_counts = []
+for index, row in rainfall_regions.iterrows():
+    state = row['subdivision']
+    year = row['YEAR']
+    #iterate through floods count number that match state and year 
+    flood_count = 0
+    for index2, row2 in floods_states.iterrows():
+        if (((state in str(row2['State']))  or (state in str(row2['Location'])))  and int(row2['year']) == int(year)):
+            flood_count += 1
+    floods_counts.append(flood_count)
+
+rainfall_regions['Flood Count'] = floods_counts
+
+rainfall_regions.to_csv("data/final.csv", index=False)
+
 
     
 
